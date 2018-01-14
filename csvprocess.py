@@ -1,7 +1,8 @@
-import cgi
 import csv
 
 import webapp2
+
+from primes.prime import get_all_prime_to_num, get_two_opts
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
@@ -19,10 +20,9 @@ class FileProcessor(webapp2.RequestHandler):
     def post(self):
         self.response.headers['Content-Type'] = 'text/csv'
         self.response.headers['Content-Disposition'] = 'attachment; filename=process_numbers.csv'
+        #primes = get_all_prime_to_num(999)
         writer = csv.writer(self.response.out)
         writer.writerow(['Num'])
-        #print('file obj: ', self.request.POST.multi['attachments'].file)
-        #with self.request.POST.multi['attachments'].file as csv_file:
         for line in self.request.POST.multi['attachments'].file.read().split()[1:]:
             writer.writerow([line])
         return redirect('/')
