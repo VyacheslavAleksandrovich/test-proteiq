@@ -1,4 +1,5 @@
 import uuid
+import json
 
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
@@ -6,7 +7,7 @@ import webapp2
 from webapp2_extras import sessions
 
 #from lib.prime import get_all_prime_to_num, get_two_opts
-from lib.entity import InputFileCSV
+from lib.entity import InputFileCSV, OutFileCSV
 
 class BaseHandler(webapp2.RequestHandler):
     def dispatch(self):
@@ -32,16 +33,45 @@ class MainPage(webapp2.RequestHandler):
             </body>
         </html>""")
 
-class FileFormHandler(BaseHandler):
-    def post(self):
-        #self.response.headers['Content-Type'] = 'text/csv'
-        #self.response.headers['Content-Disposition'] = 'attachment; filename=process_numbers.csv'
-        #primes = get_all_prime_to_num(999)
+class IsReady(BaseHandler):
+    def get(self):
+        result_id = self.session['result_id'] 
+        self.response.headers['Content-Type'] = 'application/json'
+        out_file = OutFileCSV.query(OutFileCSV.uuid == result_id).get()
+        if out_file is None:
+            obj = {'isReady': False}
+        else:
+            obj = {'isReady': True}
+        self.response.out.write(json.dumps(obj))
+
+class GetResult(BaseHandler):
+    def get(self):
+        self.response.out.write("""
+        <html>
+            <body>
+                <script type="text/javascript" src="./js/jquery.js"></script>
+                <script type="text/javascript" src="./js/ajax_worker.js"></script>
+                <input id="result" name="display" disabled></input>
+                <a id="dl" href="#">Download</a>
+            </body>
+        </html>""")
+
+class ResultFileDownload(BaseHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/csv'
+        self.response.headers['Content-Disposition'] = 'attachment; filename=process_numbers.csv'
+        result_id = self.session['result_id'] 
         #writer = csv.writer(self.response.out)
         #writer.writerow(['Num'])
         #for line in self.request.POST.multi['attachments'].file.read().split()[1:]:
         #    writer.writerow([line])
-        #return redirect('/')
+        out_file = OutFileCSV.query(OutFileCSV.uuid == result_id).get()
+        self.response.out.write(out_file.content)
+
+        
+
+class FileFormHandler(BaseHandler):
+    def post(self):
         result_id = str(uuid.uuid1().int)
         self.session['result_id'] = result_id
         content = self.request.POST.multi['attachments'].file.read()
@@ -51,6 +81,7 @@ class FileFormHandler(BaseHandler):
                 url='/process_file',
                 target='worker',
                 params={'uuid': result_id, 'urlkey': key.urlsafe()})
+        self.redirect('/result')
 
         
 config = {}
@@ -58,12 +89,14 @@ config['webapp2_extras.sessions'] = {'secret_key': 'super_secret_key',}
                 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/upload_file', FileFormHandler)
+    ('/upload_file', FileFormHandler),
+    ('/is_ready', IsReady),
+    ('/result', GetResult),
+    ('/download', ResultFileDownload)
 ], debug=True, config=config)
 
 def main():
     application.run()
     
-
 if __name__ == '__main__':
     main()

@@ -2,6 +2,7 @@ from google.appengine.ext import ndb
 import webapp2
 
 from lib.entity import InputFileCSV, OutFileCSV
+from time import sleep
 
 class ProcessFile(webapp2.RequestHandler):
     def post(self):
@@ -11,8 +12,9 @@ class ProcessFile(webapp2.RequestHandler):
         csv_file = file_key.get()
         result_file = OutFileCSV(content=csv_file.content,
                                  uuid=s_k)
+        sleep(3)
+        print('sleep is done')
         result_file.put()
-        print(result_file)
 
 
 application = webapp2.WSGIApplication([
