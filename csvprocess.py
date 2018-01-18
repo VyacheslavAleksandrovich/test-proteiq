@@ -49,10 +49,9 @@ class GetResult(BaseHandler):
         self.response.out.write("""
         <html>
             <body>
-                <script type="text/javascript" src="./js/jquery.js"></script>
+                <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
                 <script type="text/javascript" src="./js/ajax_worker.js"></script>
-                <input id="result" name="display" disabled></input>
-                <a id="dl" href="#">Download</a>
+                <a id="dl" href="#">file is being processed</a>
             </body>
         </html>""")
 
@@ -61,14 +60,8 @@ class ResultFileDownload(BaseHandler):
         self.response.headers['Content-Type'] = 'text/csv'
         self.response.headers['Content-Disposition'] = 'attachment; filename=process_numbers.csv'
         result_id = self.session['result_id'] 
-        #writer = csv.writer(self.response.out)
-        #writer.writerow(['Num'])
-        #for line in self.request.POST.multi['attachments'].file.read().split()[1:]:
-        #    writer.writerow([line])
         out_file = OutFileCSV.query(OutFileCSV.uuid == result_id).get()
         self.response.out.write(out_file.content)
-
-        
 
 class FileFormHandler(BaseHandler):
     def post(self):
@@ -94,9 +87,3 @@ application = webapp2.WSGIApplication([
     ('/result', GetResult),
     ('/download', ResultFileDownload)
 ], debug=True, config=config)
-
-def main():
-    application.run()
-    
-if __name__ == '__main__':
-    main()

@@ -14,8 +14,8 @@ SERVICE_QUERY = 'https://primesinfo-192413.appspot.com/?num='
 
 def append_result(q, rpc):
     result = rpc.get_result()
-    print('result ', result.content)
-    q.append(result.content)
+    if result.status_code == 200:
+        q.append(result.content)
 
 class ProcessFile(webapp2.RequestHandler):
     def post(self):
@@ -42,8 +42,6 @@ class ProcessFile(webapp2.RequestHandler):
                                           rdict['Option_1'], rdict['Option_2'], 
                                           rdict['processing_time']]))
         result_file = OutFileCSV(content=string_buffer.getvalue(), uuid=s_k)
-        sleep(1)
-        print('sleep is done')
         result_file.put()
 
 
