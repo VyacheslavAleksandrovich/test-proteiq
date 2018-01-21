@@ -21,8 +21,8 @@ class ProcessFile(webapp2.RequestHandler):
     def post(self):
         urlkey = self.request.get('urlkey')
         s_k = self.request.get('uuid')
-        file_key = ndb.Key(urlsafe=urlkey)
-        csv_file = file_key.get()
+        input_file_key = ndb.Key(urlsafe=urlkey)
+        csv_file = input_file_key.get()
         result_queue = deque()
         rpcs = deque()
         string_buffer = StringIO()
@@ -41,8 +41,9 @@ class ProcessFile(webapp2.RequestHandler):
             csv_writer.writerow(map(str, [rdict['number'], rdict['prime'], 
                                           rdict['Option_1'], rdict['Option_2'], 
                                           rdict['processing_time']]))
-        result_file = OutFileCSV(content=string_buffer.getvalue(), uuid=s_k)
-        result_file.put()
+        result_file_key = OutFileCSV(content=string_buffer.getvalue(), uuid=s_k)
+        result_file_key.put()
+        input_file_key.delete()
 
 
 application = webapp2.WSGIApplication([
