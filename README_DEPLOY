@@ -1,2 +1,0 @@
-gcloud app deploy --project=test-proteiq app.yaml worker.yaml
-dev_appserver.py -A csvprocess app.yaml worker.yaml
